@@ -518,15 +518,6 @@ function Object:typeOf(name) end
 ---@alias love.sensorupdated fun(sensorType: love.SensorType, x: number, y: number, z: number)
 
 ---
----Called when the in-device sensor is updated with new values.
----Only sensors enabled with love.sensor.setEnabled will trigger this event.
----
----
----[Open in Browser](https://love2d.org/wiki/love.sensorupdated)
----
----@alias love.sensorupdated fun(sensorType: love.SensorType, x: number, y: number, z: number)
-
----
 ---Called when the candidate text for an IME (Input Method Editor) has changed.
 ---
 ---The candidate text is not the final text that the user will eventually choose. Use love.textinput for that.

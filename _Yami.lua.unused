@@ -1,0 +1,87 @@
+--- Yet Another Mixin Implementation, for Lua.
+--- Copyright (C) 2024  linuxcola
+---
+--- This library is free software; you can redistribute it and/or
+--- modify it under the terms of the GNU Lesser General Public
+--- License as published by the Free Software Foundation; either
+--- version 2.1 of the License, or (at your option) any later version.
+---
+--- This library is distributed in the hope that it will be useful,
+--- but WITHOUT ANY WARRANTY; without even the implied warranty of
+--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--- Lesser General Public License for more details.
+---
+--- You should have received a copy of the GNU Lesser General Public
+--- License along with this library; if not, write to the Free Software
+--- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+--[[
+이 라이브러리는 silo-project의 Yaoi와 호환되지 않고 다만 라이선스만 같습니다.
+
+2024 연말 게임잼에 사용하기 위해서 특수하게 설계되었습니다.
+]]
+
+local function inherit (t) return rawset(t, '__index', t) end
+
+---@class Yami
+---@field private __index Yami
+local Yami = inherit {}
+
+function Yami:def (o) return setmetatable(inherit(o or {}), self) end
+
+
+---@generic T: table
+---@param name `T`
+---@param o? T
+---@return T
+---@return fun(t: table): T
+function Yami.hint (name, o)
+
+	return o or {}, function (t)
+		return setmetatable(t, o)
+	end
+end
+
+---@class Vector2
+---@field x number
+---@field y number
+local Vector2 = {}
+
+---@alias Position Vector2
+---@alias Velocity Vector2
+
+---@class Player: Yami
+---@field name string
+---@field hp number
+---@field mp number
+---@field position Position
+---@field velocity Velocity
+local Player, ctor = Yami.hint 'Player'
+
+
+
+---@param name? string
+---@param hp? number
+---@param mp? number
+---@param pos Position
+---@param vel Velocity
+function Player:new (name, hp, mp, pos, vel)
+	return ctor {
+		name = name or 'Lua',
+		hp = hp or 100,
+		mp = mp or 100,
+		position = pos,
+		velocity = vel,
+	}
+end
+
+function Player:move (x, y)
+	self.position.x = self.position.x + x
+	self.position.y = self.position.y + y
+end
+
+local plr = Player:new('Yami', 100, 100, { x = 0, y = 0 }, { x = 0, y = 0 })
+plr:move(1, 1)
+
+
+return Yami
