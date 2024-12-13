@@ -817,7 +817,7 @@ function love.graphics.newImageFont(filename, glyphs) end
 ---@overload fun(vertexformat: table, vertices: table, mode?: love.MeshDrawMode, usage?: love.BufferDataUsage):love.Mesh
 ---@overload fun(vertexformat: table, vertexcount: number, mode?: love.MeshDrawMode, usage?: love.BufferDataUsage):love.Mesh
 ---@overload fun(vertexcount: number, texture?: love.Texture, mode?: love.MeshDrawMode):love.Mesh
----@param vertices {1: number, 2: number, 3: number, 4: number, 5: number, 6: number, 7: number, 8: number}[] # The table filled with vertex information tables for each vertex as follows:
+---@param vertices {[1]: number, [2]: number, [3]: number, [4]: number, [5]: number, [6]: number, [7]: number, [8]: number}[] # The table filled with vertex information tables for each vertex as follows:
 ---@param mode? love.MeshDrawMode # How the vertices are used when drawing. The default mode 'fan' is sufficient for simple convex polygons.
 ---@param usage? love.BufferDataUsage # The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance.
 ---@return love.Mesh mesh # The new mesh.
