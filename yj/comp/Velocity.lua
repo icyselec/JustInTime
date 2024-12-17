@@ -1,14 +1,18 @@
 local Yami = require 'Yami'
 
----@class yj.comp.Velocity: yj.comp.Vector
----@field x number
----@field y number
-local Velocity, ctor = Yami.def('yj.comp.Velocity', dofile 'yj/comp/Vector.lua')
+---@class yj.comp.IVelocity
+---@field vx number
+---@field vy number
 
-function Velocity.new (x, y)
-    return ctor {
-        x = x or 0,
-        y = y or 0,
+---@deprecated
+---@class yj.comp.Velocity: yj.comp.IVelocity, yj.comp.Vector
+local Velocity = Yami.def 'yj.comp.Vector'
+local base = Yami.base(Velocity)
+
+function Velocity.new (vx, vy)
+    return base {
+        vx = vx or 0,
+        vy = vy or 0,
     }
 end
 

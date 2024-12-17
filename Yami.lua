@@ -17,16 +17,42 @@
 
 local function setbase (o) return rawset(o, '__index', o) end
 
-return {
-	---@generic T: table
-	---@param typename `T`
-	---@param basetype? T
-	---@return T, fun(instance: table): T
-	def = function (typename, basetype)
-		basetype = setbase(basetype or {})
-		basetype.type = typename
-		return basetype, function (instance)
-			return setmetatable(instance, basetype)
+---@param t table
+---@param m table
+local function mix (t, m)
+	assert(type(t) == 'table', 'table expected')
+
+	for k, v in pairs(t) do
+		if k ~= 'new' and k ~= '__index' and m[k] then
+			error('conflict field: ' .. k)
+		end
+
+		if type(v) == 'function' and k ~= 'new' then
+			m[k] = v
 		end
 	end
+
+	return m
+end
+
+return {
+	---@param ... string
+	---@return table
+	def = function (...)
+		local t = setbase {}
+
+		for i, v in ipairs {...} do
+			mix(require(v), t)
+		end
+
+		return t
+	end,
+	---@generic T: table
+	---@param T T
+	---@return fun(instance: table): T
+	base = function (T)
+		return function (instance)
+			return setmetatable(instance, T)
+		end
+	end,
 }

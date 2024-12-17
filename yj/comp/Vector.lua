@@ -1,8 +1,10 @@
 local Yaoi = require 'Yaoi'
 local Yami = require 'Yami'
 
----@class yj.comp.Vector
+---@class yj.comp.IVector
 ---@field dim number
+
+---@class yj.comp.Vector: yj.comp.IVector
 local Vector = {}
 
 function Vector:init ()
