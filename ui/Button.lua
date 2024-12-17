@@ -32,6 +32,13 @@ function Button.new (
     }
 end
 
+---@param dt number
+function Button:onUpdate(
+    dt
+)
+    self:invokeCallback('Update', dt)
+end
+
 ---@param renderer ui.Renderer
 function Button:onDraw (
     renderer
@@ -45,7 +52,7 @@ function Button:onDraw (
         renderer:drawTextBatch(self, self.textBatch)
     end
 
-    self:invokeHandler('onDraw', renderer)
+    self:invokeCallback('Draw', renderer)
 
     love.graphics.pop()
 end
@@ -65,7 +72,7 @@ function Button:onEnter(
     y
 )
     if self:isContact(x, y) then
-        return self:invokeHandler('onEnter', x, y) or self
+        return self:invokeCallback('Enter', x, y) or self
     end
 end
 
@@ -76,14 +83,14 @@ function Button:onLeave (
     y
 )
     if not self:isContact(x, y) then
-        self:invokeHandler('onLeave', x, y)
+        self:invokeCallback('Leave', x, y)
     end
 end
 
 function Button:onClick ()
     if not (self.enabled or self.activated) then return end
 
-    self:invokeHandler('onClick')
+    self:invokeCallback('Click')
 end
 
 ---comment
@@ -96,7 +103,7 @@ function Button:onMousePressed (
     y,
     button
 )
-    if button == 1 and self:isContact(x, y) then
+    if self:isContact(x, y) then
         return self
     end
 
@@ -108,11 +115,10 @@ function Button:onMouseReleased (
     y,
     button
 )
-    if button == 1 and self:isContact(x, y) then
-        self:invokeHandler('onClick', x, y, button)
+    if self:isContact(x, y) then
+        self:invokeCallback('Click', x, y, button)
     end
 end
-
 
 
 return Button

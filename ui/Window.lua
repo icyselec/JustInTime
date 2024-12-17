@@ -13,23 +13,6 @@ local Dimension = require 'yj.comp.Dimension'
 
 local Renderer = require 'ui.Renderer'
 
---- 이름과는 다르게, 실제로 Window의 전역 상태가 아니다.
---- Lua에서 global_State가 있는 것처럼, Window에서도 어떤 그룹에 속한 Window 간에 공유되는 전역 상태가 있다.
---- 이번 게임잼을 위해 특수하게 설계된 Yami 라이브러리 또한 Lua 철학을 엄격하게 따르므로, 모든 모듈은 반드시 불변 상태를 가져야 한다.
----@class ui.Window.GlobalState
----@field font love.Font
----@field renderer ui.Renderer
-local GlobalState = Yami.def()
-
----@param renderer? ui.Renderer
-function GlobalState.new (
-    renderer
-)
-    return {
-        renderer = renderer or Renderer.new(),
-    }
-end
-
 -- 짧은 Lua 최적화 테크닉.
 -- 함수는 사실 클로저이다.
 -- 클로저를 대량 생성하면 성능이 저하될 수 있다.
@@ -37,58 +20,42 @@ end
 -- 또한, 너무 무분별한 업밸류 사용을 자제하는 것이 좋다.
 -- 그거 편리해보이지만, 다 비용이 든다.
 
+---@alias ui.Window.OnFocus fun(self: ui.Component, focus: boolean): ui.Component?
+---@alias ui.Window.OnQuit fun(self: ui.Component): ui.Component?
 
----@class ui.Window: ui.Component, ui.Container, ui.Iterable
----@field G ui.Window.GlobalState
----@field active boolean
----@field dimension yj.comp.Dimension
+---@class ui.Window.Event: ui.Component.Event, ui.Drawable.Event
+---@field onDraw ui.Drawable.OnDraw
+
+---@class ui.Window.Callback: ui.Component.Callback
+---@field Draw ui.Drawable.OnDraw
+
+
+
+---@class ui.Window: ui.Component, ui.Container, ui.Iterable, ui.Window.Event
+---@field activated boolean
 ---@field mousePosition yj.comp.Position
----@field focused? ui.Component
+---@field focusing? ui.Component
 ---@field renderer ui.Renderer
 ---@field grabbing? ui.Component
+---@field callback ui.Window.Callback
+---@field visible boolean
 local Window = Yami.def('ui.Component', 'ui.Container', 'ui.Iterable')
 local base = Yami.base(Window)
 
 --- Create a new root window.
 ---@param pos yj.comp.Position
----@param dim yj.comp.Dimension
 ---@param renderer? ui.Renderer
 ---@return ui.Window
 function Window.new (
     pos,
-    dim,
-    renderer
-)
-    assert(pos, 'Position is required')
-
-    local G = GlobalState.new()
-
-    return base {
-        G = G,
-        position = pos,
-        dimension = dim or Dimension.new(32, 32),
-        mousePosition = Position.new(love.mouse.getPosition()),
-    }
-end
-
---- Create a new window and add it to the window list.
----@param pos number
----@param dim number
----@param renderer? ui.Renderer
----@return ui.Window
-function Window:newWindow (
-    pos,
-    dim,
     renderer
 )
     assert(pos, 'Position is required')
 
     return base {
-        G = self.G,
         position = pos,
-        dimension = dim or Dimension.new(32, 32),
         mousePosition = Position.new(love.mouse.getPosition()),
-        renderer = renderer,
+        visible = false,
     }
 end
 
@@ -110,9 +77,11 @@ end
 function Window:onDraw (
     renderer
 )
+    if not self.visible then return end
+
     love.graphics.push('all')
     love.graphics.translate(self.position.x, self.position.y)
-    self:foreach(draw_children, renderer or self.renderer or self.G.renderer)
+    self:foreach(draw_children, renderer or self.renderer)
     love.graphics.pop()
 end
 
@@ -127,14 +96,22 @@ end
 ---@param x number
 ---@param y number
 function Window:onMouseMoved (x, y)
+    if not self.visible then return end
+
     x, y = self.position:toLocal(x, y)
 
-    if self.focused then
-        ---@cast self {focused: ui.Contactable}
-            self.focused:onLeave(x, y)
+    if self.grabbing then
+        ---@cast self {grabbing: ui.Contactable}
+        self.grabbing:onGrab(x, y)
     end
 
-    self.focused = self:find(function (comp)
+    if self.focusing then
+        ---@cast self {focusing: ui.Contactable}
+        self.focusing:onLeave(x, y)
+    end
+
+    ---@cast self ui.Window
+    self.focusing = self:find(function (comp)
         return propagateEnterEvent(comp, x, y)
     end)
 end
@@ -144,19 +121,26 @@ local function propagatePressedEvent (self, x, y, button, istouch, presses)
 end
 
 function Window:onMousePressed (x, y, button, istouch, presses)
+    if not self.visible then return end
+
     x, y = self.position:toLocal(x, y)
 
+    self:invokeCallback('MousePressed', x, y, button, istouch, presses)
     self.grabbing = self:findLast(propagatePressedEvent, x, y, button, istouch, presses)
-    print(self.grabbing)
+    self.focusing = self.grabbing
 end
 
 function Window:onMouseReleased (x, y, button, istouch)
+    if not self.visible then return end
+
     x, y = self.position:toLocal(x, y)
 
     if self.grabbing then
         if self.grabbing.onMouseReleased then
             self.grabbing:onMouseReleased(x, y, button, istouch)
         end
+
+        self.grabbing = nil
     end
 end
 
@@ -164,5 +148,47 @@ function Window:show ()
     self.visible = true
 end
 
+function Window:hide ()
+    self.visible = false
+end
+
+local function propagateUpdateEvent (self, dt)
+    return self.onUpdate and self:onUpdate(dt)
+end
+
+---@param dt number
+function Window:onUpdate (dt)
+    self:invokeCallback('Update', dt)
+    self:foreach(propagateUpdateEvent, dt)
+end
+
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+---@param isrepeat boolean
+function Window:onKeyPressed (key, scancode, isrepeat)
+    if not self.visible then return end
+
+    self:invokeCallback('KeyPressed', key, scancode, isrepeat)
+
+    if self.focusing then
+        if self.focusing.onKeyPressed then
+            self.focusing:onKeyPressed(key, scancode, isrepeat)
+        end
+    end
+end
+
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+function Window:onKeyReleased (key, scancode)
+    if not self.visible then return end
+
+    self:invokeCallback('KeyPressed', key, scancode)
+
+    if self.focusing then
+        if self.focusing.onKeyReleased then
+            self.focusing:onKeyReleased(key, scancode)
+        end
+    end
+end
 
 return Window

@@ -90,7 +90,7 @@ function Label:onDraw (
     --love.graphics.print(self.text, self.position.x - (self.dimension.width/2), self.position.y - (self.dimension.height/2))
 
     renderer:drawTextBatch(self)
-    self:invokeHandler('onDraw', renderer)
+    self:invokeCallback('Draw', renderer)
     love.graphics.pop()
 end
 

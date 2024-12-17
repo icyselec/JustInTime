@@ -3,6 +3,14 @@ local Yami = require 'Yami'
 local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
 
+---@alias ui.Drawable.OnDraw fun(self: ui.Component, renderer: ui.Renderer): ui.Component?
+
+---@class ui.Drawable.Event
+---@field onDraw ui.Drawable.OnDraw
+
+---@class ui.Drawable.Callback
+---@field Draw? ui.Drawable.OnDraw
+
 ---@class ui.Drawable.Text: ui.Drawable
 ---@field textBatch love.TextBatch
 
@@ -11,10 +19,9 @@ local Dimension = require 'yj.comp.Dimension'
 ---@field clicked boolean
 ---@field enabled boolean
 
----@class ui.Drawable: ui.Component
+---@class ui.Drawable: ui.Component, ui.Drawable.Event
 ---@field dimension yj.comp.Dimension
 ---@field activated boolean
----@field onDraw ui.DrawCallback
 local Drawable = Yami.def('ui.Component')
 local base = Yami.base(Drawable)
 

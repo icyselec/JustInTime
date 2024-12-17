@@ -24,7 +24,10 @@ end
 
 ---@param self ui.Drawable
 ---@param renderer ui.Renderer
-local function draw_children (self, renderer)
+local function draw_children (
+    self,
+    renderer
+)
     if self.onDraw then
         self:onDraw(renderer)
         return
@@ -38,7 +41,7 @@ function Panel:onDraw (
     if not self.activated then return self end
 
     renderer:drawPanel(self)
-    self:invokeHandler('onDraw', renderer)
+    self:invokeCallback('Draw', renderer)
 
     local retval
 
@@ -63,7 +66,14 @@ function Panel:isContact (
         and y >= self_y and y <= self_y + self.dimension.height
 end
 
-local function propagateEnterEvent (self, x, y)
+---@param self ui.Contactable
+---@param x number
+---@param y number
+local function propagateEnterEvent (
+    self,
+    x,
+    y
+)
     return self.onEnter and self:onEnter(x, y)
 end
 
@@ -75,7 +85,7 @@ function Panel:onEnter (
     y
 )
     if self:isContact(x, y) then
-        return self:invokeHandler('onEnter', x, y) or self
+        return self:invokeCallback('Enter', x, y) or self
     end
 
     return self:find(propagateEnterEvent, self.position:toLocal(x, y))
@@ -88,7 +98,7 @@ function Panel:onStay (
     x,
     y
 )
-    return self:invokeHandler('onStay', x, y) or self
+    return self:invokeCallback('Stay', x, y) or self
 end
 
 ---@param x number
@@ -98,38 +108,114 @@ function Panel:onLeave (
     y
 )
     if not self:isContact(x, y) then
-        return self:invokeHandler('onLeave', x, y) or self
+        return self:invokeCallback('Leave', x, y) or self
     end
 
     return nil
 end
 
-local function propagateMousePressedEvent (self, x, y, button)
-    return self.onMousePressed and self:onMousePressed(x, y, button)
+---@param self ui.Component
+---@param x number
+---@param y number
+---@param button number
+---@param istouch boolean
+---@param presses number
+local function propagateMousePressedEvent (
+    self,
+    x,
+    y,
+    button,
+    istouch,
+    presses
+)
+    return self.onMousePressed and self:onMousePressed(x, y, button, istouch, presses)
 end
 
 ---comment
 ---@param x number
 ---@param y number
 ---@param button number
+---@param istouch boolean
+---@param presses number
 ---@return ui.Component?
 function Panel:onMousePressed (
     x,
     y,
-    button
+    button,
+    istouch,
+    presses
 )
     local contact
 
     if self:isContact(x, y) then
-        contact = self:invokeHandler('onMousePressed', x, y, button) or self
+        contact = self:invokeCallback('MousePressed', x, y, button, istouch, presses) or self
     end
 
     -- if self is kind of Container, it is required to compute a local position.
     x, y = self.position:toLocal(x, y)
 
     return self:find(function (comp)
-        return propagateMousePressedEvent(comp, x, y, button)
+        return propagateMousePressedEvent(comp, x, y, button, istouch, presses)
     end) or contact
+end
+
+---@param self ui.Component
+---@param dt number
+local function propagateUpdateEvent (
+    self,
+    dt
+)
+    return self.onUpdate and self:onUpdate(dt)
+end
+
+---@param dt number
+function Panel:onUpdate (
+    dt
+)
+    self:invokeCallback('Update', dt)
+    self:foreach(propagateUpdateEvent, dt)
+end
+
+---@param self ui.Component
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+---@param isrepeat boolean
+local function propagateKeyPressedEvent (
+    self,
+    key,
+    scancode,
+    isrepeat
+)
+    return self.onKeyPressed and self:onKeyPressed(key, scancode, isrepeat)
+end
+
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+---@param isrepeat boolean
+function Panel:onKeyPressed (
+    key,
+    scancode,
+    isrepeat
+)
+    return self:invokeCallback('KeyPressed', key, scancode, isrepeat) or self:foreach(propagateKeyPressedEvent, key, scancode, isrepeat)
+end
+
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+function Panel:onKeyReleased (
+    key,
+    scancode
+)
+    return self:invokeCallback('KeyReleased', key, scancode) or self
+end
+
+---@param x number
+---@param y number
+function Panel:onGrab (
+    x,
+    y
+)
+    return self:invokeCallback('Grab', x, y) or self
 end
 
 return Panel
