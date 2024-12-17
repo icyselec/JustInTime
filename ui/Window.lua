@@ -30,7 +30,12 @@ function GlobalState.new (
     }
 end
 
-
+-- 짧은 Lua 최적화 테크닉.
+-- 함수는 사실 클로저이다.
+-- 클로저를 대량 생성하면 성능이 저하될 수 있다.
+-- 미리 생성해놓고 나중에 필요할 때 호출하는 것이 최적의 성능을 낸다.
+-- 또한, 너무 무분별한 업밸류 사용을 자제하는 것이 좋다.
+-- 그거 편리해보이지만, 다 비용이 든다.
 
 
 ---@class ui.Window: ui.Component, ui.Container, ui.Iterable
