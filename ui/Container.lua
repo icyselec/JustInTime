@@ -25,27 +25,4 @@ function Container:removeComponent (
     end
 end
 
----@param breaking boolean
----@param f ui.Component.EventHandler
----@param ... any
----@return ui.Component?
-function Container:foreach (
-    breaking,
-    f,
-    ...
-)
-    local retval
-
-    for _, comp in ipairs(self) do
-        retval = f(comp, ...)
-        if breaking and retval then
-            return retval
-        end
-    end
-
-    return retval
-end
-
-
-
 return Container

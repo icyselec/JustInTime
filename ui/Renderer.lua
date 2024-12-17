@@ -4,12 +4,16 @@ local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
 local Color = require 'yj.comp.Color'
 
----@class ui.BaseUI
----@field font love.Font
-local BaseUI = {}
+---@class ui.Renderer
+---@field transform love.Transform
+local Renderer = Yami.def()
+local base = Yami.base(Renderer)
 
-BaseUI.font = love.graphics.newFont(12)
-
+function Renderer.new ()
+    return base {
+        transform = love.math.newTransform(),
+    }
+end
 
 local default_pos = Position.new(0, 0)
 local default_dim = Dimension.new(32, 32)
@@ -23,12 +27,15 @@ local hovered_col = Color.new(192/255, 192/255, 1, 1) -- light blue color
 local clicked_col = Color.new(0, 111/255, 222/255, 1) -- dark blue color
 local disabled_col = Color.new(0.75, 0.75, 1, 1) -- light gray color
 
+local text_col = Color.new(0, 0, 0, 1) -- black color
+
 -- 0.0 - 1.0
 local roundness = 2/32
 
+---@param self ui.Renderer
 ---@param this ui.Drawable
 ---@param color? yj.comp.Color
-function BaseUI.drawBackPanel (
+function Renderer:drawBackPanel (
     this,
     color
 )
@@ -52,7 +59,7 @@ end
 
 ---@param this ui.Drawable
 ---@param color? yj.comp.Color
-function BaseUI.drawBorder (
+function Renderer:drawBorder (
     this,
     color
 )
@@ -77,26 +84,26 @@ end
 ---@param this ui.Drawable
 ---@param color? yj.comp.Color
 ---@param border_color? yj.comp.Color
-function BaseUI.drawPanel (
+function Renderer:drawPanel (
     this,
     color,
     border_color
 )
-    BaseUI.drawBackPanel(this, color)
-    BaseUI.drawBorder(this, border_color)
+    self:drawBackPanel(this, color)
+    self:drawBorder(this, border_color)
 end
 
 ---@param this ui.Drawable.Button
-function BaseUI.drawButton (
+function Renderer:drawButton (
     this
 )
-    BaseUI.drawBackPanel(this, normal_col)
+    self:drawBackPanel(this, normal_col)
     if this.clicked then
-        BaseUI.drawBorder(this, clicked_col)
+        self:drawBorder(this, clicked_col)
     elseif this.hovered then
-        BaseUI.drawBorder(this, hovered_col)
+        self:drawBorder(this, hovered_col)
     else
-        BaseUI.drawBorder(this, normal_col)
+        self:drawBorder(this, normal_col)
     end
 end
 
@@ -104,7 +111,7 @@ end
 
 ---@param this ui.Drawable.Text
 ---@param textBatch? love.TextBatch
-function BaseUI.drawText (
+function Renderer:drawTextBatch (
     this,
     textBatch
 )
@@ -112,12 +119,33 @@ function BaseUI.drawText (
     -- text dimensions
     local tw, th = textBatch:getDimensions()
 
+    love.graphics.push('all')
+    love.graphics.setColor(text_col)
     -- draw text
     love.graphics.draw(
         textBatch,
         this.position.x - math.floor(tw/2),
         this.position.y - math.floor(th/2)
     )
+
+    love.graphics.pop()
 end
 
-return BaseUI
+function Renderer:drawText (
+    this,
+    text
+)
+    love.graphics.print(text, this.position.x, this.position.y)
+end
+
+--- Wrapper for love.graphics.draw, but apply Renderer's own state.
+---@overload fun(drawable: love.Drawable, x?: number, y?: number, r?: number, sx?: number, sy?: number, ox?: number, oy?: number, kx?: number, ky?: number)
+---@overload fun(texture: love.Texture, quad: love.Quad, x: number, y: number, r?: number, sx?: number, sy?: number, ox?: number, oy?: number, kx?: number, ky?: number)
+---@overload fun(drawable: love.Drawable, transform: love.Transform)
+---@overload fun(texture: love.Texture, quad: love.Quad, transform: love.Transform)
+function Renderer:draw (...)
+    love.graphics.replaceTransform(self.transform)
+    love.graphics.draw(...)
+end
+
+return Renderer

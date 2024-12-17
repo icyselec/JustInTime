@@ -14,8 +14,7 @@ local Dimension = require 'yj.comp.Dimension'
 ---@class ui.Drawable: ui.Component
 ---@field dimension yj.comp.Dimension
 ---@field activated boolean
----@field draw fun(self: self, ctrl: ui.Controller)
----@field onDraw fun(self: self, ctrl: ui.Controller): boolean? # if return truthy value, This should reference to the last propagated object.
+---@field onDraw ui.DrawCallback
 local Drawable = Yami.def('ui.Component')
 local base = Yami.base(Drawable)
 

@@ -3,7 +3,7 @@ local Yami = require 'Yami'
 local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
 
-local BaseUI = require 'ui.BaseUI'
+local BaseUI = require 'ui.Renderer'
 
 ---@class ui.Label: ui.Drawable.Text
 ---@field font love.Font
@@ -81,18 +81,16 @@ function Label:getDimensions ()
     return self.textBatch:getDimensions()
 end
 
-function Label:onDraw ()
+---@param renderer ui.Renderer
+function Label:onDraw (
+    renderer
+)
     love.graphics.push('all')
     love.graphics.setFont(self.font)
     --love.graphics.print(self.text, self.position.x - (self.dimension.width/2), self.position.y - (self.dimension.height/2))
 
-    local t = Position.new(
-        self.position.x - (self.dimension.width/2),
-        self.position.y - (self.dimension.height/2)
-    )
-
-    BaseUI.drawText(self)
-    self:invokeHandler('onDraw', t)
+    renderer:drawTextBatch(self)
+    self:invokeHandler('onDraw', renderer)
     love.graphics.pop()
 end
 

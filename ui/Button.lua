@@ -1,44 +1,53 @@
 local Yami = require 'Yami'
 
-local BaseUI = require 'ui.BaseUI'
+local Position = require 'yj.comp.Position'
+local Dimension = require 'yj.comp.Dimension'
 
----@class ui.Button: ui.Component, ui.Drawable.Button
+---@class ui.Button: ui.Component, ui.Drawable.Button, ui.Contactable
 local Button = Yami.def 'ui.Component'
 local base = Yami.base(Button)
 
+
 ---@param text? string
----@param enabled boolean
-function Button.new (text, enabled)
+---@param position? yj.comp.Position
+function Button.new (
+    text,
+    position,
+    dimension
+)
     local textBatch
 
     if text then
-        textBatch = love.graphics.newTextBatch(BaseUI.font)
-        textBatch:add(text, 0, 0)
+        textBatch = love.graphics.newTextBatch(love.graphics.getFont(), text)
     end
 
     return base {
         textBatch = textBatch,
-        enabled = enabled or true,
+        enabled = true,
         hovered = false,
         clicked = false,
+        position = position or Position.new(0, 0),
+        dimension = dimension or Dimension.new(25, 25),
+        activated = true,
     }
 end
 
-function Button:draw ()
-    if not self.activated then
-        return self
-    end
+---@param renderer ui.Renderer
+function Button:onDraw (
+    renderer
+)
+    if not self.activated then return self end
 
     love.graphics.push('all')
 
-    BaseUI.drawButton(self)
+    renderer:drawButton(self)
     if self.textBatch then
-        BaseUI.drawText(self, self.textBatch)
+        renderer:drawTextBatch(self, self.textBatch)
     end
 
-    love.graphics.pop()
+    self:invokeHandler('onDraw', renderer)
 
-    return self
+    love.graphics.pop()
 end
 
 function Button:isContact (x, y)
@@ -49,9 +58,61 @@ function Button:isContact (x, y)
         and y >= self_y and y <= self_y + self.dimension.height
 end
 
-function Button:onEnter(x, y)
-    
+---@param x number
+---@param y number
+function Button:onEnter(
+    x,
+    y
+)
+    if self:isContact(x, y) then
+        return self:invokeHandler('onEnter', x, y) or self
+    end
 end
+
+---@param x number
+---@param y number
+function Button:onLeave (
+    x,
+    y
+)
+    if not self:isContact(x, y) then
+        self:invokeHandler('onLeave', x, y)
+    end
+end
+
+function Button:onClick ()
+    if not (self.enabled or self.activated) then return end
+
+    self:invokeHandler('onClick')
+end
+
+---comment
+---@param x number
+---@param y number
+---@param button number
+---@return ui.Component?
+function Button:onMousePressed (
+    x,
+    y,
+    button
+)
+    if button == 1 and self:isContact(x, y) then
+        return self
+    end
+
+    return nil
+end
+
+function Button:onMouseReleased (
+    x,
+    y,
+    button
+)
+    if button == 1 and self:isContact(x, y) then
+        self:invokeHandler('onClick', x, y, button)
+    end
+end
+
 
 
 return Button
