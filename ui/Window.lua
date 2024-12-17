@@ -111,13 +111,13 @@ function Window:onMouseMoved (
 
     x, y = self.position:toLocal(x, y)
 
-    if self.grabbing then
-        ---@cast self {grabbing: ui.Contactable}
+    ---@cast self {grabbing: ui.Contactable}
+    if self.grabbing and self.grabbing.onGrab then
         self.grabbing:onGrab(dx, dy)
     end
 
-    if self.focusing then
-        ---@cast self {focusing: ui.Contactable}
+    ---@cast self {focusing: ui.Contactable}
+    if self.focusing and self.focusing.onLeave then
         self.focusing:onLeave(x, y)
     end
 
@@ -198,6 +198,23 @@ function Window:onKeyReleased (key, scancode)
     if self.focusing then
         if self.focusing.onKeyReleased then
             self.focusing:onKeyReleased(key, scancode)
+        end
+    end
+end
+
+---@param x number
+---@param y number
+function Window:onWheelMoved (
+    x,
+    y
+)
+    if not self.visible then return end
+
+    self:invokeCallback('WheelMoved', x, y)
+
+    if self.focusing then
+        if self.focusing.onWheelMoved then
+            self.focusing:onWheelMoved(x, y)
         end
     end
 end

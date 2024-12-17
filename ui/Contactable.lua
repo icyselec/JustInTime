@@ -3,18 +3,21 @@
 ---@alias ui.Contactable.OnStay fun(self: ui.Contactable, x: number, y: number): boolean
 ---@alias ui.Contactable.OnLeave fun(self: ui.Contactable, x: number, y: number): boolean
 ---@alias ui.Contactable.OnGrab fun(self: ui.Contactable, dx: number, dy: number): boolean
+---@alias ui.Contactable.OnScroll fun(self: ui.Contactable, dx: number, dy: number): boolean
 
 ---@class ui.Contactable.Event
 ---@field onEnter ui.Contactable.OnEnter
 ---@field onStay ui.Contactable.OnStay
 ---@field onLeave ui.Contactable.OnLeave
 ---@field onGrab ui.Contactable.OnGrab
+---@field onScroll ui.Contactable.OnScroll
 
 ---@class ui.Contactable.Callback
 ---@field Enter? ui.Contactable.OnEnter
 ---@field Stay? ui.Contactable.OnStay
 ---@field Leave? ui.Contactable.OnLeave
 ---@field Grab? ui.Contactable.OnGrab
+---@field Scroll? ui.Contactable.OnScroll
 
 ---@class ui.Contactable: ui.Contactable.Event
 ---@field isContact fun(self: self, x: number, y: number): boolean

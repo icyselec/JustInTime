@@ -41,6 +41,10 @@ function love.keyreleased (key, scancode)
 	main_window:onKeyReleased(key, scancode)
 end
 
+function love.wheelmoved (x, y)
+	main_window:onWheelMoved(x, y)
+end
+
 function love.draw ()
 	main_window:onDraw()
 	love.graphics.print(string.format('x: %d, y: %d (global)', love.mouse.getPosition()), 0, 12)

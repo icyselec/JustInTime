@@ -27,6 +27,14 @@ local theme = ui.Theme.new()
 theme:setPanelImage(love.graphics.newImage('assets/1057537.png', imageLoadSettings))
 main.renderer = theme
 
+
+local Grabbable = {}
+function Grabbable:Grab (dx, dy) ---@cast self ui.Component
+    self.position.x = self.position.x + dx
+    self.position.y = self.position.y + dy
+end
+
+
 current_comp = main:addComponent(ui.Panel.new(yj.comp.Position.new(0, 0), yj.comp.Dimension.new(100, 100)))
 current_comp.userData = {
     position = yj.comp.Position.new(0, 0),
@@ -139,6 +147,9 @@ end)
 main:setCallback('Overlay', function (self, renderer) ---@cast renderer ui.Renderer
     love.graphics.circle('fill', circle_x, circle_y, 10)
 end)
+
+current_comp = main:addComponent(ui.Panel.new(yj.comp.Position.new(0, 0), yj.comp.Dimension.new(100, 100)))
+current_comp:setBaseCallback(Grabbable)
 
 
 return main

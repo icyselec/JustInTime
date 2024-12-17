@@ -7,6 +7,7 @@ local Yami = require 'Yami'
 ---@alias ui.Component.OnMouseFocus fun(self: ui.Component, focus: boolean): ui.Component?
 ---@alias ui.Component.OnKeyPressed fun(self: ui.Component, key: love.KeyConstant, scancode: love.Scancode, isrepeat: boolean): ui.Component?
 ---@alias ui.Component.OnKeyReleased fun(self: ui.Component, key: love.KeyConstant, scancode: love.Scancode): ui.Component?
+---@alias ui.Component.OnWheelMoved fun(self: ui.Component, x: number, y: number): ui.Component?
 
 ---@class ui.Component.Event
 ---@field onUpdate ui.Component.OnUpdate
@@ -15,6 +16,7 @@ local Yami = require 'Yami'
 ---@field onMouseReleased ui.Component.OnMouseReleased
 ---@field onKeyPressed ui.Component.OnKeyPressed
 ---@field onKeyReleased ui.Component.OnKeyReleased
+---@field onWheelMoved ui.Component.OnWheelMoved
 
 ---@class ui.Component.Callback
 ---@field Update? ui.Component.OnUpdate
@@ -23,6 +25,7 @@ local Yami = require 'Yami'
 ---@field MouseReleased? ui.Component.OnMouseReleased
 ---@field KeyPressed? ui.Component.OnKeyPressed
 ---@field KeyReleased? ui.Component.OnKeyReleased
+---@field WheelMoved? ui.Component.OnWheelMoved
 
 ---@class ui.Component: ui.Component.Event
 ---@field position yj.comp.Position
@@ -79,6 +82,21 @@ function Component:invokeCallback (name, ...)
     end
 
     return nil
+end
+
+function Component:getBaseCallback ()
+    return getmetatable(self.callback)
+end
+
+---@param base_callback ui.Component.Callback
+function Component:setBaseCallback (
+    base_callback
+)
+    if not self.callback then
+        self.callback = {}
+    end
+
+    return setmetatable(self.callback, rawset(base_callback, '__index', base_callback))
 end
 
 return Component
