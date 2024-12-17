@@ -4,12 +4,15 @@ local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
 
 ---@alias ui.Drawable.OnDraw fun(self: ui.Component, renderer: ui.Renderer): ui.Component?
+---@alias ui.Drawable.OnOverlay fun(self: ui.Component, renderer: ui.Renderer): ui.Component?
 
 ---@class ui.Drawable.Event
 ---@field onDraw ui.Drawable.OnDraw
+---@field onOverlay ui.Drawable.OnOverlay
 
 ---@class ui.Drawable.Callback
 ---@field Draw? ui.Drawable.OnDraw
+---@field Overlay? ui.Drawable.OnOverlay
 
 ---@class ui.Drawable.Text: ui.Drawable
 ---@field textBatch love.TextBatch

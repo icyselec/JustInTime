@@ -21,8 +21,8 @@ function love.update (dt)
 	main_window:onUpdate(dt)
 end
 
-function love.mousemoved (x, y)
-	main_window:onMouseMoved(x, y)
+function love.mousemoved (x, y, dx, dy, istouch)
+	main_window:onMouseMoved(x, y, dx, dy, istouch)
 end
 
 function love.mousepressed (...)

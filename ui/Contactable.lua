@@ -1,8 +1,8 @@
 
----@alias ui.Contactable.OnEnter fun(self: self, x: number, y: number): boolean
----@alias ui.Contactable.OnStay fun(self: self, x: number, y: number): boolean
----@alias ui.Contactable.OnLeave fun(self: self, x: number, y: number): boolean
----@alias ui.Contactable.OnGrab fun(self: self, x: number, y: number): boolean
+---@alias ui.Contactable.OnEnter fun(self: ui.Contactable, x: number, y: number): boolean
+---@alias ui.Contactable.OnStay fun(self: ui.Contactable, x: number, y: number): boolean
+---@alias ui.Contactable.OnLeave fun(self: ui.Contactable, x: number, y: number): boolean
+---@alias ui.Contactable.OnGrab fun(self: ui.Contactable, dx: number, dy: number): boolean
 
 ---@class ui.Contactable.Event
 ---@field onEnter ui.Contactable.OnEnter

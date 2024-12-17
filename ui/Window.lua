@@ -81,7 +81,9 @@ function Window:onDraw (
 
     love.graphics.push('all')
     love.graphics.translate(self.position.x, self.position.y)
+    self:invokeCallback('Draw', renderer or self.renderer)
     self:foreach(draw_children, renderer or self.renderer)
+    self:invokeCallback('Overlay', renderer or self.renderer)
     love.graphics.pop()
 end
 
@@ -95,14 +97,23 @@ end
 --- Entry point of the mouse event.
 ---@param x number
 ---@param y number
-function Window:onMouseMoved (x, y)
+---@param dx number
+---@param dy number
+---@param istouch boolean
+function Window:onMouseMoved (
+    x,
+    y,
+    dx,
+    dy,
+    istouch
+)
     if not self.visible then return end
 
     x, y = self.position:toLocal(x, y)
 
     if self.grabbing then
         ---@cast self {grabbing: ui.Contactable}
-        self.grabbing:onGrab(x, y)
+        self.grabbing:onGrab(dx, dy)
     end
 
     if self.focusing then

@@ -45,7 +45,7 @@ current_comp:setCallback('Draw', function (self, renderer) ---@cast renderer ui.
     end
 end)
 current_comp:setCallback('Grab', function (self, x, y)
-    self.position.x, self.position.y = x, y
+    self.position.x, self.position.y = self.position.x + x, self.position.y + y
 end)
 
 current_comp = main:addComponent(ui.Panel.new(yj.comp.Position.new(0, -50), yj.comp.Dimension.new(200, 60)))
@@ -114,5 +114,31 @@ end)
 current_comp:setCallback('Update', function (self, dt)
     self.userData.particleSystem:update(dt)
 end)
+
+local circle_x, circle_y = 0, 0
+
+main:setCallback('Update', function (self, dt)
+    local x, y = 0, 0
+
+    if love.keyboard.isDown('left') then
+        x = x - 1
+    elseif love.keyboard.isDown('right') then
+        x = x + 1
+    end
+
+    if love.keyboard.isDown('up') then
+        y = y - 1
+    elseif love.keyboard.isDown('down') then
+        y = y + 1
+    end
+
+    circle_x = circle_x + x * 100 * dt
+    circle_y = circle_y + y * 100 * dt
+end)
+
+main:setCallback('Overlay', function (self, renderer) ---@cast renderer ui.Renderer
+    love.graphics.circle('fill', circle_x, circle_y, 10)
+end)
+
 
 return main
