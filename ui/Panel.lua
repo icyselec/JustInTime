@@ -24,6 +24,7 @@ function Panel.new (
         dimension = dim or Dimension.new(25, 25),
         active = true,
         visible = true,
+        pushes = 0,
     }
 end
 
@@ -44,12 +45,11 @@ end
 
 ---@type ui.Common.OnDraw
 function Panel:onDraw ()
-    love.graphics.push('all')
+    self:backup(true)
     Renderer:drawPanel(self)
 
-    love.graphics.translate(self.position.x, self.position.y)
-    self:foreach(drawChildren)
-    love.graphics.pop()
+    Window.onDraw(self)
+    self:backup(false)
 
     return true
 end

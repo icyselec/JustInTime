@@ -2,6 +2,16 @@ local Vector = require 'yj.comp.Vector'
 
 -- new namespace
 local yj = {}
+local ui = {}
+
+ui.Window = require 'ui.Window'
+ui.Panel = require 'ui.Panel'
+ui.Label = require 'ui.Label'
+
+yj.comp = {}
+
+yj.comp.Position = require 'yj.comp.Position'
+yj.comp.Dimension = require 'yj.comp.Dimension'
 
 
 ---@type ui.Window
@@ -120,8 +130,8 @@ end
 
 
 
---[[
-function love.errorhandler(msg)
+
+function love.errorhandler (msg)
 	local behavior = main_window.onError
 
 	if behavior then
@@ -204,14 +214,6 @@ function love.errorhandler(msg)
 	p = p:gsub("\t", "")
 	p = p:gsub("%[string \"(.-)\"%]", "%1")
 
-	local function draw()
-		if not love.graphics.isActive() then return end
-		local pos = 70
-		love.graphics.clear(89/255, 157/255, 220/255)
-		love.graphics.printf(p, pos, pos, love.graphics.getWidth() - pos)
-		love.graphics.present()
-	end
-
 	local fullErrorText = p
 	local function copyToClipboard()
 		if not love.system then return end
@@ -227,12 +229,29 @@ function love.errorhandler(msg)
 
 	local errorhandler = {}
 
+	errorhandler.main_window = ui.Window.new()
+
+	local current = errorhandler.main_window:addComponent(ui.Panel.new(yj.comp.Position.new(0, 0), yj.comp.Dimension.new(640, 480)))
+
+	local label = current:addComponent(ui.Label.new(p, nil))
+
+	errorhandler.main_window.onKeyPressed = function (self, key, scancode, isrepeat)
+		if key == 'c' and love.keyboard.isDown('lctrl', 'rctrl') then
+			copyToClipboard()
+			label:setText(p)
+		end
+	end
+
 	function errorhandler.update (dt)
 
 	end
 
 	function errorhandler.draw ()
-		draw()
+		local behavior = errorhandler.main_window.onDraw
+
+		if behavior then
+			behavior(errorhandler.main_window)
+		end
 	end
 
 	return function ()
@@ -243,6 +262,12 @@ function love.errorhandler(msg)
 				if name == "quit" then
 					if not love.quit or not love.quit() then
 						return a or 0
+					end
+				elseif name == "keypressed" then
+					local behavior = errorhandler.main_window.onKeyPressed
+
+					if behavior then
+						behavior(errorhandler.main_window, a, b, c)
 					end
 				end
 				love.handlers[name](a,b,c,d,e,f)
@@ -266,6 +291,4 @@ function love.errorhandler(msg)
 
 		if love.timer then love.timer.sleep(0.001) end
 	end
-
 end
-]]

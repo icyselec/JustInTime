@@ -52,6 +52,7 @@ do
             },
             active = true,
             visible = true,
+            pushes = 0,
         }
     end
 end
@@ -68,8 +69,14 @@ function Item:onGrab (grab)
     return true
 end
 
+function Item:onGrabbingChanged (new)
+    ui.Panel.onGrabbingChanged(self, new)
+
+    return true
+end
+
 function Item:onDraw ()
-    love.graphics.push('all')
+    self:backup(true)
 
     ui.Panel.onDraw(self)
 
@@ -77,7 +84,7 @@ function Item:onDraw ()
     local name = self.userData.name
     love.graphics.print(name, self.position.x - font:getWidth(name)/2, self.position.y - font:getHeight()/2)
 
-    love.graphics.pop()
+    self:backup(false)
 end
 
 function Item:onMouseMoved (x, y, dx, dy, istouch)
@@ -109,12 +116,16 @@ do
             },
             active = true,
             visible = true,
+            pushes = 0,
         }
     end
 end
 
 function Inventory:onGrabbingChanged (new)
     ui.Panel.onGrabbingChanged(self, new)
+
+    self:setFocusing(new)
+    return true
 end
 
 function Inventory:newItem (name, description)
@@ -138,9 +149,7 @@ function Inventory:onMouseReleased (x, y, button, istouch)
         self.grabbing.position.y = gY
     end
 
-    print('Released')
-
-    ui.Panel.onMouseReleased (self, x, y, button, istouch)
+    return ui.Panel.onMouseReleased (self, x, y, button, istouch)
 end
 
 local inv = main:addComponent(Inventory.new(yj.comp.Position.new(0, 0), yj.comp.Dimension.new(250, 250)))
@@ -149,7 +158,11 @@ for i = 1, 25 do
     local item = inv:newItem('Item ' .. i, 'An item')
 end
 
-
+main.onKeyPressed = function (self, key, scancode, isrepeat)
+    if key == 'pause' then
+        error('Aborted')
+    end
+end
 
 
 return main

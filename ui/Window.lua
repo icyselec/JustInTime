@@ -57,7 +57,7 @@ local Renderer = require 'ui.Renderer'
 ---@field onGrabbingChanged? ui.Window.OnGrabbingChanged
 ---@field onGrab? ui.Window.OnGrab
 
----@class ui.Window: ui.Component, ui.Container, ui.Iterable, ui.Window.Callback, ui.Contactable, ui.Drawable
+---@class ui.Window: ui.Container, ui.Iterable, ui.Window.Callback, ui.Contactable, ui.Drawable
 ---@field hovering? ui.Component # 현재 마우스가 가리키고 있는 컴포넌트
 ---@field grabbing? ui.Component # 현재 마우스가 클릭하고 있는 컴포넌트
 ---@field activated boolean
@@ -65,7 +65,7 @@ local Renderer = require 'ui.Renderer'
 ---@field renderer ui.Renderer
 ---@field callback ui.Window.Callback
 ---@field visible boolean
-local Window = Yami.def('ui.Component', 'ui.Container', 'ui.Iterable')
+local Window = Yami.def('ui.Drawable', 'ui.Container', 'ui.Iterable')
 local base = Yami.base(Window)
 
 --- Create a new root window.
@@ -83,7 +83,16 @@ function Window.new (
         dimension = dim or Dimension.new(w, h),
         active = true,
         visible = true,
+        pushes = 0,
     }
+end
+
+function Window:isVisible ()
+    return self.visible
+end
+
+function Window:setVisible (visible)
+    self.visible = visible
 end
 
 function Window:show ()
@@ -242,11 +251,16 @@ local function drawChildren (self) ---@cast self ui.Component, +ui.Drawable
 end
 ---@type ui.Common.OnDraw
 function Window:onDraw ()
+    self:backup(true)
+
+    -- 임시방편
     love.graphics.push('all')
     love.graphics.translate(self.position.x, self.position.y)
 
     self:foreach(drawChildren)
+
     love.graphics.pop()
+    self:backup(false)
 end
 
 local function getTop (self, x, y)
@@ -283,9 +297,10 @@ end
 function Window:onFocus (
     focus
 )
-    if self.grabbing then
+    if self.grabbing and not focus then
         local onGrabbingChanged = self.onGrabbingChanged
 
+        print('onFocus', self.grabbing)
         if onGrabbingChanged then
             onGrabbingChanged(self, nil)
         end
@@ -861,7 +876,7 @@ function Window:onHoveringChanged (
     new
 )
     if self.hovering then
-        local behavior = self.hovering.onHoveringChanged
+        local behavior = self.hovering.onMouseFocus
 
         if behavior then
             behavior(self.hovering, false)
@@ -906,6 +921,10 @@ function Window:onGrabbingChanged (
         end
     end
 
+    -- 원래 계획은 grabbing 필드를 변경하는 것까지 콜백으로 구현할 수 있도록 할려고 했었지만 그 방법에는 큰 문제가 있다.
+    -- 첫번째, 최상위 Window는 grabbing 필드를 변경하지 않으므로, 마우스 커서가 컨테이너 바깥으로 나가면 드래그가 풀린 것으로 인식한다.
+    -- 두번째, onGrabbingChanged라는 이름과 잘 맞지 않다. 실제로 하는 행동은 없으면서 다른 객체에 할 일을 위임하기 때문에 부적절하다.
+    -- 세번째, Window가 최소한의 동작도 지원하지 않는 것은 말이 안된다. Window라는 이름에 맞는 최소한의 동작은 가지고 있어야 한다.
     self.grabbing = new
 
     return true

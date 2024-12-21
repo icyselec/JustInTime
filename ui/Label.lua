@@ -7,7 +7,7 @@ local Renderer = require 'ui.Renderer'
 
 ---@class ui.Label: ui.Drawable.Text
 ---@field font love.Font
-local Label = Yami.def 'ui.Component'
+local Label = Yami.def 'ui.Drawable'
 local base = Yami.base(Label)
 
 do
@@ -63,7 +63,9 @@ function Label.new (
         font = font or love.graphics.getFont(),
         position = position or Position.new(0, 0),
         dimension = Label.newDimension(textBatch),
+        active = true,
         visible = true,
+        pushes = 0,
     }
 
     return base(o)
@@ -83,13 +85,20 @@ end
 
 ---@type ui.Common.OnDraw
 function Label:onDraw ()
-    love.graphics.push('all')
+    self:backup(true)
     love.graphics.setFont(self.font)
     --love.graphics.print(self.text, self.position.x - (self.dimension.width/2), self.position.y - (self.dimension.height/2))
 
     Renderer:drawTextBatch(self)
 
-    love.graphics.pop()
+    self:backup(false)
+end
+
+function Label:setText (text)
+    if self.textBatch then
+        self.textBatch:clear()
+        self.textBatch:add(text)
+    end
 end
 
 return Label

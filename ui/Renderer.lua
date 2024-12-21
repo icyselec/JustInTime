@@ -119,7 +119,7 @@ function Renderer:drawTextBatch (
     -- text dimensions
     local tw, th = textBatch:getDimensions()
 
-    love.graphics.push('all')
+    this:backup(true)
     love.graphics.setColor(text_col)
     -- draw text
     love.graphics.draw(
@@ -128,7 +128,7 @@ function Renderer:drawTextBatch (
         this.position.y - math.floor(th/2)
     )
 
-    love.graphics.pop()
+    this:backup(false)
 end
 
 function Renderer:drawText (

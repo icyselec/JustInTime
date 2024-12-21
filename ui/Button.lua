@@ -32,19 +32,20 @@ function Button.new (
         dimension = dimension or Dimension.new(25, 25),
         active = true,
         visible = true,
+        pushes = 0,
     }
 end
 
 ---@type ui.Common.OnDraw
 function Button:onDraw ()
-    love.graphics.push('all')
+    self:backup(true)
 
     Renderer:drawButton(self)
     if self.textBatch then
         Renderer:drawTextBatch(self, self.textBatch)
     end
 
-    love.graphics.pop()
+    self:backup(false)
 end
 
 function Button:isContact (x, y)
