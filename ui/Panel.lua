@@ -1,16 +1,20 @@
 local Yami = require 'Yami'
 
+--- Extend from
+local Window = require 'ui.Window'
+
 local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
-local BaseUI = require 'ui.Renderer'
 
----@class ui.Panel: ui.Component, ui.Container, ui.Drawable, ui.Contactable, ui.Iterable
-local Panel = Yami.def('ui.Component', 'ui.Container', 'ui.Iterable')
+local Renderer = require 'ui.Renderer'
+
+---@class ui.Panel: ui.Window
+local Panel = Yami.def('ui.Window')
 local base = Yami.base(Panel)
 
 ---comment
----@param pos yj.comp.Position
----@param dim yj.comp.Dimension
+---@param pos? yj.comp.Position
+---@param dim? yj.comp.Dimension
 function Panel.new (
     pos,
     dim
@@ -18,204 +22,48 @@ function Panel.new (
     return base {
         position = pos or Position.new(0, 0),
         dimension = dim or Dimension.new(25, 25),
-        activated = true,
+        active = true,
+        visible = true,
     }
 end
 
 ---@param self ui.Drawable
----@param renderer ui.Renderer
-local function draw_children (
-    self,
-    renderer
+local function drawChildren (
+    self
 )
-    if self.onDraw then
-        self:onDraw(renderer)
-        return
+    local behavior = self.visible and self.onDraw
+
+    if not behavior then
+        return true
+    end
+
+    if behavior then
+        return behavior(self)
     end
 end
 
----@param renderer ui.Renderer
-function Panel:onDraw (
-    renderer
-)
-    if not self.activated then return self end
-
-    renderer:drawPanel(self)
-    self:invokeCallback('Draw', renderer)
-
-    local retval
-
+---@type ui.Common.OnDraw
+function Panel:onDraw ()
     love.graphics.push('all')
+    Renderer:drawPanel(self)
+
     love.graphics.translate(self.position.x, self.position.y)
-    retval = self:foreach(draw_children, renderer)
+    self:foreach(drawChildren)
     love.graphics.pop()
-    return retval
+
+    return true
 end
 
----@param x number
----@param y number
----@return boolean
-function Panel:isContact (
-    x,
-    y
-)
-    local self_x = self.position.x - (self.dimension.width / 2)
-    local self_y = self.position.y - (self.dimension.height / 2)
+--- Not supported events
 
-    return x >= self_x and x <= self_x + self.dimension.width
-        and y >= self_y and y <= self_y + self.dimension.height
-end
-
----@param self ui.Contactable
----@param x number
----@param y number
-local function propagateEnterEvent (
-    self,
-    x,
-    y
-)
-    return self.onEnter and self:onEnter(x, y)
-end
-
----@param x number
----@param y number
----@return ui.Component?
-function Panel:onEnter (
-    x,
-    y
-)
-    if self:isContact(x, y) then
-        return self:invokeCallback('Enter', x, y) or self
-    end
-
-    return self:find(propagateEnterEvent, self.position:toLocal(x, y))
-end
-
----comment
----@param x number
----@param y number
-function Panel:onStay (
-    x,
-    y
-)
-    return self:invokeCallback('Stay', x, y) or self
-end
-
----@param x number
----@param y number
-function Panel:onLeave (
-    x,
-    y
-)
-    if not self:isContact(x, y) then
-        return self:invokeCallback('Leave', x, y) or self
-    end
-
-    return nil
-end
-
----@param self ui.Component
----@param x number
----@param y number
----@param button number
----@param istouch boolean
----@param presses number
-local function propagateMousePressedEvent (
-    self,
-    x,
-    y,
-    button,
-    istouch,
-    presses
-)
-    return self.onMousePressed and self:onMousePressed(x, y, button, istouch, presses)
-end
-
----comment
----@param x number
----@param y number
----@param button number
----@param istouch boolean
----@param presses number
----@return ui.Component?
-function Panel:onMousePressed (
-    x,
-    y,
-    button,
-    istouch,
-    presses
-)
-    local contact
-
-    if self:isContact(x, y) then
-        contact = self:invokeCallback('MousePressed', x, y, button, istouch, presses) or self
-    end
-
-    -- if self is kind of Container, it is required to compute a local position.
-    x, y = self.position:toLocal(x, y)
-
-    return self:find(function (comp)
-        return propagateMousePressedEvent(comp, x, y, button, istouch, presses)
-    end) or contact
-end
-
----@param self ui.Component
----@param dt number
-local function propagateUpdateEvent (
-    self,
-    dt
-)
-    return self.onUpdate and self:onUpdate(dt)
-end
-
----@param dt number
-function Panel:onUpdate (
-    dt
-)
-    self:invokeCallback('Update', dt)
-    self:foreach(propagateUpdateEvent, dt)
-end
-
----@param self ui.Component
----@param key love.KeyConstant
----@param scancode love.Scancode
----@param isrepeat boolean
-local function propagateKeyPressedEvent (
-    self,
-    key,
-    scancode,
-    isrepeat
-)
-    return self.onKeyPressed and self:onKeyPressed(key, scancode, isrepeat)
-end
-
----@param key love.KeyConstant
----@param scancode love.Scancode
----@param isrepeat boolean
-function Panel:onKeyPressed (
-    key,
-    scancode,
-    isrepeat
-)
-    return self:invokeCallback('KeyPressed', key, scancode, isrepeat) or self:foreach(propagateKeyPressedEvent, key, scancode, isrepeat)
-end
-
----@param key love.KeyConstant
----@param scancode love.Scancode
-function Panel:onKeyReleased (
-    key,
-    scancode
-)
-    return self:invokeCallback('KeyReleased', key, scancode) or self
-end
-
----@param x number
----@param y number
-function Panel:onGrab (
-    x,
-    y
-)
-    return self:invokeCallback('Grab', x, y) or self
-end
+Panel.onAudioDisconnected = nil
+Panel.onDirectoryDropped = nil
+Panel.onErrorHandler = nil
+Panel.onFileDropped = nil
+Panel.onLocaleChanged = nil
+Panel.onLowMemory = nil
+Panel.onQuit = nil
+Panel.onResize = nil
+Panel.onThreadError = nil
 
 return Panel

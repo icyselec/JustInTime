@@ -91,6 +91,8 @@ end)
 main:setCallback('KeyPressed', function (self, key)
     if key == 'escape' then
         love.event.quit()
+    elseif key == 'z' then
+        print(main.focusing)
     end
 end)
 
@@ -150,6 +152,31 @@ end)
 
 current_comp = main:addComponent(ui.Panel.new(yj.comp.Position.new(0, 0), yj.comp.Dimension.new(100, 100)))
 current_comp:setBaseCallback(Grabbable)
+
+current_comp.userData = {
+    velocity = yj.comp.Position.new(0, 0),
+}
+
+current_comp:setCallback('WheelMoved', function (self, x, y)
+    if love.keyboard.isDown('lshift') then
+        self.userData.velocity.x = self.userData.velocity.x + y * 50
+    else
+        self.userData.velocity.y = self.userData.velocity.y + y * 50
+    end
+end)
+
+current_comp:setCallback('Update', function (self, dt)
+    self.position.x = self.position.x - self.userData.velocity.x * dt
+    self.position.y = self.position.y - self.userData.velocity.y * dt
+    self.userData.velocity.x = self.userData.velocity.x * 0.9
+    self.userData.velocity.y = self.userData.velocity.y * 0.9
+    if math.abs(self.userData.velocity.x) < 0.1 then
+        self.userData.velocity.x = 0
+    end
+    if math.abs(self.userData.velocity.y) < 0.1 then
+        self.userData.velocity.y = 0
+    end
+end)
 
 
 return main

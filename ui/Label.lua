@@ -3,7 +3,7 @@ local Yami = require 'Yami'
 local Position = require 'yj.comp.Position'
 local Dimension = require 'yj.comp.Dimension'
 
-local BaseUI = require 'ui.Renderer'
+local Renderer = require 'ui.Renderer'
 
 ---@class ui.Label: ui.Drawable.Text
 ---@field font love.Font
@@ -13,7 +13,7 @@ local base = Yami.base(Label)
 do
     ---@class ui.Label.Dimension: yj.comp.Dimension
     ---@field textBatch love.TextBatch
-    local Dimension = Yami.def 'yj.comp.Dimension'
+    local Dimension = Yami.def 'yj.comp.Dimension' ---@diagnostic disable-line: redefined-local
     local base = Yami.base(Dimension)
     local virtual_index = {
         width = function (self)
@@ -81,16 +81,14 @@ function Label:getDimensions ()
     return self.textBatch:getDimensions()
 end
 
----@param renderer ui.Renderer
-function Label:onDraw (
-    renderer
-)
+---@type ui.Common.OnDraw
+function Label:onDraw ()
     love.graphics.push('all')
     love.graphics.setFont(self.font)
     --love.graphics.print(self.text, self.position.x - (self.dimension.width/2), self.position.y - (self.dimension.height/2))
 
-    renderer:drawTextBatch(self)
-    self:invokeCallback('Draw', renderer)
+    Renderer:drawTextBatch(self)
+
     love.graphics.pop()
 end
 

@@ -5,8 +5,9 @@ local Yami = require 'Yami'
 ---@field position? yj.comp.Position
 local Container = {}
 
----@param comp ui.Component
----@return ui.Component
+---@generic T: ui.Component
+---@param comp T
+---@return T
 function Container:addComponent (
     comp
 )
@@ -14,8 +15,9 @@ function Container:addComponent (
     return comp
 end
 
----@param comp ui.Component
----@return ui.Component?
+---@generic T: ui.Component
+---@param comp T
+---@return T?
 function Container:removeComponent (
     comp
 )

@@ -16,8 +16,8 @@ function Position.new (x, y)
 end
 
 function Position:move (dx, dy)
-    self.x = math.floor(self.x + dx)
-    self.y = math.floor(self.y + dy)
+    self.x = self.x + dx
+    self.y = self.y + dy
     return self
 end
 
