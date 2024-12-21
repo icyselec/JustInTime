@@ -140,10 +140,6 @@ end
 local debugcount = 0
 function Window:getFocusing ()
     for i = #self, 1, -1 do
-        debugcount = debugcount + 1
-        if debugcount > 75*10 then
-            error('possible infinite loop')
-        end
         local v = self[i]
         if v.active and v.visible and v.isContact then
             return v

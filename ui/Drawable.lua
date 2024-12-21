@@ -20,8 +20,8 @@ local Dimension = require 'yj.comp.Dimension'
 
 ---@class ui.Drawable: ui.Component, ui.Drawable.Callback
 ---@field dimension yj.comp.Dimension
----@field hidden boolean
 ---@field visible boolean
+---@field pushed boolean
 local Drawable = Yami.def('ui.Component')
 local base = Yami.base(Drawable)
 
@@ -34,6 +34,7 @@ function Drawable.new (
     return base {
         position = pos or Position.new(0, 0),
         dimension = dim or Dimension.new(25, 25),
+        pushed = false,
     }
 end
 

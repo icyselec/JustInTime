@@ -23,11 +23,11 @@ local function mix (t, m)
 	assert(type(t) == 'table', 'table expected')
 
 	for k, v in pairs(t) do
-		if k ~= 'new' and k ~= '__index' and m[k] then
-			error('conflict field: ' .. k)
-		end
+--		if k ~= 'new' and k ~= '__index' and m[k] then
+--			error('conflict field: ' .. k)
+--		end
 
-		if type(v) == 'function' and k ~= 'new' then
+		if type(v) == 'function' and k ~= 'new' and k ~= '__index' then
 			m[k] = v
 		end
 	end
