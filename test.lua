@@ -65,7 +65,6 @@ function Item:onGrab (grab)
         behavior(self, grab)
     end
 
-    print('Grab', grab)
     return true
 end
 
@@ -135,10 +134,11 @@ end
 function Inventory:onMouseReleased (x, y, button, istouch)
     if self.grabbing then
         local gX, gY = self:getGrid(self.dimension.width/2 + x, self.dimension.height/2 + y)
-        print(gX, gY)
         self.grabbing.position.x = gX
         self.grabbing.position.y = gY
     end
+
+    print('Released')
 
     ui.Panel.onMouseReleased (self, x, y, button, istouch)
 end

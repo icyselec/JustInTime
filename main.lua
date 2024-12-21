@@ -106,6 +106,14 @@ function love.draw ()
 	love.graphics.print(string.format('GC: %d KB', collectgarbage('count')), 0, 36)
 end
 
+function love.focus (focus)
+	local behavior = main_window.onFocus
+
+	if behavior then
+		behavior(main_window, focus)
+	end
+end
+
 
 --- Start of error handling code
 

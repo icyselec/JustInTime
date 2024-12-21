@@ -136,8 +136,14 @@ function Window:reorder (comp)
     end)
 end
 
+
+local debugcount = 0
 function Window:getFocusing ()
     for i = #self, 1, -1 do
+        debugcount = debugcount + 1
+        if debugcount > 75*10 then
+            error('possible infinite loop')
+        end
         local v = self[i]
         if v.active and v.visible and v.isContact then
             return v
@@ -177,8 +183,8 @@ local function propAudioDisconnectedEvent (self, sources)
         return
     end
 
-    local success, result = behavior(self, sources)
-    return success, result
+    local _, result = behavior(self, sources)
+    return result
 end
 ---@type ui.Common.OnAudioDisconnected
 function Window:onAudioDisconnected (
@@ -277,8 +283,18 @@ function Window:onFileDropped (
     end
 end
 
+---@type ui.Common.OnFocus
+function Window:onFocus (
+    focus
+)
+    if self.grabbing then
+        local onGrabbingChanged = self.onGrabbingChanged
 
-
+        if onGrabbingChanged then
+            onGrabbingChanged(self, nil)
+        end
+    end
+end
 
 
 
@@ -481,7 +497,8 @@ function Window:onKeyPressed (
             return true
         end
 
-        return behavior(self, key, scancode, isrepeat)
+        -- 저는 여기의 첫번째 인자가 self 였다는 사실이 믿기지가 않습니다.
+        return behavior(focusing, key, scancode, isrepeat)
     end
 end
 ---@param key love.KeyConstant
@@ -499,7 +516,7 @@ function Window:onKeyReleased (
             return true
         end
 
-        return behavior(self, key, scancode)
+        return behavior(focusing, key, scancode)
     end
 end
 
@@ -637,6 +654,7 @@ function Window:onMousePressed (
             local behavior
 
             behavior = self.onGrabbingChanged
+
             if behavior then
                 behavior(self, top)
             end
@@ -754,7 +772,7 @@ function Window:onSensorUpdated (
             return true
         end
 
-        return behavior(self, sensorType, x, y, z)
+        return behavior(focusing, sensorType, x, y, z)
     end
 end
 
@@ -773,7 +791,7 @@ function Window:onTextEdited (
             return true
         end
 
-        return behavior(self, text, start, length)
+        return behavior(focusing, text, start, length)
     end
 end
 ---@type ui.Common.OnTextInput
@@ -789,7 +807,7 @@ function Window:onTextInput (
             return true
         end
 
-        return behavior(self, text)
+        return behavior(focusing, text)
     end
 end
 
